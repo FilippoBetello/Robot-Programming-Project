@@ -1,6 +1,0 @@
-devel_space: /home/filippo/Robot-Programming-Project/devel
-install: false
-install_space: /home/filippo/Robot-Programming-Project/install
-profile: default
-source_space: /home/filippo/Robot-Programming-Project/src
-workspace: /home/filippo/Robot-Programming-Project
