@@ -10,6 +10,8 @@ project(project)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
+  message_generation
+  laser_geometry
   std_msgs
 )
 
@@ -68,10 +70,11 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   sensor_msgs#   std_msgs
-# )
+ generate_messages(
+   DEPENDENCIES
+   sensor_msgs
+   std_msgs
+ )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -103,10 +106,10 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES project
-#  CATKIN_DEPENDS roscpp sensor_msgs std_msgs
-#  DEPENDS system_lib
+  INCLUDE_DIRS include
+  LIBRARIES project
+  CATKIN_DEPENDS roscpp sensor_msgs std_msgs
+  DEPENDS system_lib
 )
 
 ###########
@@ -204,3 +207,7 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+add_executable(project src/project.cpp)
+target_link_libraries(project ${catkin_LIBRARIES})
+add_dependencies(project project_generate_messages_cpp)
