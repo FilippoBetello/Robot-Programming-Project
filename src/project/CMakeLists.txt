@@ -9,7 +9,6 @@ project(project)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
-  sensor_msgs
   message_generation
   laser_geometry
   std_msgs
@@ -72,7 +71,6 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
  generate_messages(
    DEPENDENCIES
-   sensor_msgs
    std_msgs
  )
 
@@ -108,7 +106,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES project
-  CATKIN_DEPENDS roscpp sensor_msgs std_msgs
+  CATKIN_DEPENDS roscpp std_msgs
   DEPENDS system_lib
 )
 

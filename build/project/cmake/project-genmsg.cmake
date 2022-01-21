@@ -4,7 +4,7 @@ message(WARNING "Invoking generate_messages() without having added any message o
 You should either add add_message_files() and/or add_service_files() calls or remove the invocation of generate_messages().")
 message(STATUS "project: 0 messages, 0 services")
 
-set(MSG_I_FLAGS "-Isensor_msgs:/opt/ros/noetic/share/sensor_msgs/cmake/../msg;-Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg;-Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg")
+set(MSG_I_FLAGS "-Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg")
 
 # Find all generators
 find_package(gencpp REQUIRED)
@@ -157,9 +157,6 @@ if(gencpp_INSTALL_DIR AND EXISTS ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/pr
     DESTINATION ${gencpp_INSTALL_DIR}
   )
 endif()
-if(TARGET sensor_msgs_generate_messages_cpp)
-  add_dependencies(project_generate_messages_cpp sensor_msgs_generate_messages_cpp)
-endif()
 if(TARGET std_msgs_generate_messages_cpp)
   add_dependencies(project_generate_messages_cpp std_msgs_generate_messages_cpp)
 endif()
@@ -170,9 +167,6 @@ if(geneus_INSTALL_DIR AND EXISTS ${CATKIN_DEVEL_PREFIX}/${geneus_INSTALL_DIR}/pr
     DIRECTORY ${CATKIN_DEVEL_PREFIX}/${geneus_INSTALL_DIR}/project
     DESTINATION ${geneus_INSTALL_DIR}
   )
-endif()
-if(TARGET sensor_msgs_generate_messages_eus)
-  add_dependencies(project_generate_messages_eus sensor_msgs_generate_messages_eus)
 endif()
 if(TARGET std_msgs_generate_messages_eus)
   add_dependencies(project_generate_messages_eus std_msgs_generate_messages_eus)
@@ -185,9 +179,6 @@ if(genlisp_INSTALL_DIR AND EXISTS ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/
     DESTINATION ${genlisp_INSTALL_DIR}
   )
 endif()
-if(TARGET sensor_msgs_generate_messages_lisp)
-  add_dependencies(project_generate_messages_lisp sensor_msgs_generate_messages_lisp)
-endif()
 if(TARGET std_msgs_generate_messages_lisp)
   add_dependencies(project_generate_messages_lisp std_msgs_generate_messages_lisp)
 endif()
@@ -198,9 +189,6 @@ if(gennodejs_INSTALL_DIR AND EXISTS ${CATKIN_DEVEL_PREFIX}/${gennodejs_INSTALL_D
     DIRECTORY ${CATKIN_DEVEL_PREFIX}/${gennodejs_INSTALL_DIR}/project
     DESTINATION ${gennodejs_INSTALL_DIR}
   )
-endif()
-if(TARGET sensor_msgs_generate_messages_nodejs)
-  add_dependencies(project_generate_messages_nodejs sensor_msgs_generate_messages_nodejs)
 endif()
 if(TARGET std_msgs_generate_messages_nodejs)
   add_dependencies(project_generate_messages_nodejs std_msgs_generate_messages_nodejs)
@@ -213,9 +201,6 @@ if(genpy_INSTALL_DIR AND EXISTS ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/proj
     DIRECTORY ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/project
     DESTINATION ${genpy_INSTALL_DIR}
   )
-endif()
-if(TARGET sensor_msgs_generate_messages_py)
-  add_dependencies(project_generate_messages_py sensor_msgs_generate_messages_py)
 endif()
 if(TARGET std_msgs_generate_messages_py)
   add_dependencies(project_generate_messages_py std_msgs_generate_messages_py)

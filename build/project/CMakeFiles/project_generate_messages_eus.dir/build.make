@@ -58,7 +58,7 @@ project/CMakeFiles/project_generate_messages_eus: /home/filippo/Robot-Programmin
 
 /home/filippo/Robot-Programming-Project/devel/share/roseus/ros/project/manifest.l: /opt/ros/noetic/lib/geneus/gen_eus.py
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/filippo/Robot-Programming-Project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating EusLisp manifest code for project"
-	cd /home/filippo/Robot-Programming-Project/build/project && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/geneus/cmake/../../../lib/geneus/gen_eus.py -m -o /home/filippo/Robot-Programming-Project/devel/share/roseus/ros/project project sensor_msgs std_msgs
+	cd /home/filippo/Robot-Programming-Project/build/project && ../catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/geneus/cmake/../../../lib/geneus/gen_eus.py -m -o /home/filippo/Robot-Programming-Project/devel/share/roseus/ros/project project std_msgs
 
 project_generate_messages_eus: project/CMakeFiles/project_generate_messages_eus
 project_generate_messages_eus: /home/filippo/Robot-Programming-Project/devel/share/roseus/ros/project/manifest.l
