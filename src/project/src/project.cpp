@@ -8,8 +8,10 @@
 #include "tf/message_filter.h"
 #include <Eigen/Geometry>
 
-float vel_x = 0, vel_y = 0, obstacle_x = 0, obstacle_y = 0;
-
+float vel_x = 0, vel_y = 0, vel_angular = 0, force_x = 0, force_y = 0;
+bool cmd_vel_arrived = false;
+geometry_msgs::Twist vel_rec;
+ros::Publisher pub_vel;
 
 inline Eigen::Isometry2f convertPose2D(const tf::StampedTransform& t) {
     double yaw,pitch,roll;
@@ -26,35 +28,85 @@ inline Eigen::Isometry2f convertPose2D(const tf::StampedTransform& t) {
 }
 
 void cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& msg){
-    vel_x = msg->linear.x;
-    vel_y = msg->linear.y;
-    std::cout << vel_x << " Velocity x" << std::endl;
-    std::cout << vel_y << " Velocity y" << std::endl;
+  vel_rec = *msg;
+  cmd_vel_arrived = true;
+  vel_x = msg->linear.x;
+  vel_y = msg->linear.y;
+  vel_angular = msg->angular.z;
 }
 
 void laser_cmd_vel_callback(const sensor_msgs::LaserScan::ConstPtr& scan){
-
+  if (!cmd_vel_arrived) return;
+  cmd_vel_arrived = false;    //is arrived, if it is not set to false the same command will be processed multiple times
+  
   laser_geometry::LaserProjection projector;
   tf::StampedTransform obstacle;
   tf::TransformListener listener;
   sensor_msgs::PointCloud cloud;
+
   try{
     // Transform laser scan in odom frame using the tf listener
     projector.transformLaserScanToPointCloud("base_laser_link",*scan, cloud,listener);
     listener.waitForTransform("base_footprint", "base_laser_link", ros::Time(0), ros::Duration(10,0));
     listener.lookupTransform("base_footprint", "base_laser_link", ros::Time(0), obstacle);
-
-    Eigen::Isometry2f T = convertPose2D(obstacle);  //Matrix to transform the coordinates
-    Eigen::Vector2f p;
-
-    std::cout << "ostacoli x: " << obstacle_x << std::endl;
-    std::cout << "ostacoli y: " << obstacle_y << std::endl;
   }
 
   catch(tf::TransformException &ex) {
     ROS_ERROR("%s", ex.what());
     return;
   }
+
+  Eigen::Isometry2f T = convertPose2D(obstacle);  //Matrix to transform the coordinates
+  Eigen::Vector2f p_start, p_curr;
+
+  //at the beginning 
+  p_start(0) = cloud.points[540].x;
+  p_start(1) = cloud.points[540].y;
+  p_start = T*p_start;
+  float distance_obstacle = sqrt(pow(p_start(0),2) + pow(p_start(1),2));
+
+
+//scan all elements of the cloud
+  for(auto& point: cloud.points){
+    p_curr(0) = point.x;
+    p_curr(1) = point.y;
+    p_curr = T*p_curr;
+    float distance_obstacle_curr = sqrt(point.x*point.x + point.y*point.y);   //will be substituted by pow, now for me it's clearer to work like this
+    float force_obstacle = 1/pow(distance_obstacle_curr, 2);
+    //update components x y
+    force_x += p_start(0)*force_obstacle;
+    force_y += p_start(1)*force_obstacle;
+
+    if(distance_obstacle_curr < distance_obstacle){
+      distance_obstacle = distance_obstacle_curr;
+      p_start = p_curr;
+    }
+  }
+  //need to consider the opposite because the vectors have same directions of robot->obstacle
+  //but opposite versor
+
+  if (distance_obstacle < 1.5 && vel_x>0){
+    force_x = - force_x;
+    force_y = - force_y;
+
+    geometry_msgs::Twist msg_send;
+
+    msg_send.linear.x =  force_x + vel_x;
+    msg_send.linear.y =  force_y + vel_y;
+
+    if(p_start(1) >0){
+      msg_send.angular.z = -1/distance_obstacle;
+    }
+    else if (p_start(1) < 0){
+      msg_send.angular.z = 1/distance_obstacle;
+    }
+    pub_vel.publish(msg_send);
+  }
+  else{
+    pub_vel.publish(vel_rec);
+  }
+  
+  
 }
 
 int main(int argc, char **argv){
@@ -62,9 +114,9 @@ int main(int argc, char **argv){
   ros::init(argc, argv, "project");
 
   ros::NodeHandle nh;
-  ros::Subscriber cmd_vel_sub = nh.subscribe("cmd_vel", 1000, cmd_vel_callback);
+  ros::Subscriber cmd_vel_sub = nh.subscribe("cmd_vel", 1, cmd_vel_callback);
   ros::Subscriber laser_scan_sub = nh.subscribe("base_scan", 1000, laser_cmd_vel_callback);
-  ros::Publisher pub_vel = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
+  pub_vel = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
   
 
 
