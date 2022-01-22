@@ -6,8 +6,24 @@
 #include "geometry_msgs/Twist.h"
 #include "message_filters/subscriber.h" 
 #include "tf/message_filter.h"
+#include <Eigen/Geometry>
 
-float vel_x = 0, vel_y = 0, vel_obstacle_x = 0, vel_obstacle_y = 0;
+float vel_x = 0, vel_y = 0, obstacle_x = 0, obstacle_y = 0;
+
+
+inline Eigen::Isometry2f convertPose2D(const tf::StampedTransform& t) {
+    double yaw,pitch,roll;
+    tf::Matrix3x3 mat =  t.getBasis();
+    mat.getRPY(roll, pitch, yaw);
+    Eigen::Isometry2f T;
+    T.setIdentity();
+    Eigen::Matrix2f R;
+    R << std::cos(yaw), -std::sin(yaw),
+        std::sin(yaw), std::cos(yaw);
+    T.linear() = R;
+    T.translation() = Eigen::Vector2f(t.getOrigin().x(), t.getOrigin().y());
+    return T;
+}
 
 void cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& msg){
     vel_x = msg->linear.x;
@@ -27,8 +43,14 @@ void laser_cmd_vel_callback(const sensor_msgs::LaserScan::ConstPtr& scan){
     projector.transformLaserScanToPointCloud("base_laser_link",*scan, cloud,listener);
     listener.waitForTransform("base_footprint", "base_laser_link", ros::Time(0), ros::Duration(10,0));
     listener.lookupTransform("base_footprint", "base_laser_link", ros::Time(0), obstacle);
-    std::cout << "funziona daje" << std::endl;
+
+    Eigen::Isometry2f T = convertPose2D(obstacle);  //Matrix to transform the coordinates
+    Eigen::Vector2f p;
+
+    std::cout << "ostacoli x: " << obstacle_x << std::endl;
+    std::cout << "ostacoli y: " << obstacle_y << std::endl;
   }
+
   catch(tf::TransformException &ex) {
     ROS_ERROR("%s", ex.what());
     return;
@@ -44,6 +66,8 @@ int main(int argc, char **argv){
   ros::Subscriber laser_scan_sub = nh.subscribe("base_scan", 1000, laser_cmd_vel_callback);
   ros::Publisher pub_vel = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
   
+
+
  /* Exit only when ctrl+c is pressed*/
   ros::spin();
 

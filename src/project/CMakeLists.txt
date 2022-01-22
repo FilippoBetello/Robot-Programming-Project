@@ -209,3 +209,4 @@ include_directories(
 add_executable(project src/project.cpp)
 target_link_libraries(project ${catkin_LIBRARIES})
 add_dependencies(project project_generate_messages_cpp)
+include_directories("/usr/include/eigen3")
