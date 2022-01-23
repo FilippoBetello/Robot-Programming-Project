@@ -74,8 +74,8 @@ void laser_cmd_vel_callback(const sensor_msgs::LaserScan::ConstPtr& scan){
     float distance_obstacle_curr = sqrt(point.x*point.x + point.y*point.y);   //will be substituted by pow, now for me it's clearer to work like this
     float force_obstacle = 1/pow(distance_obstacle_curr, 2);
     //update components x y
-    force_x += p_start(0)*force_obstacle;
-    force_y += p_start(1)*force_obstacle;
+    force_x += p_curr(0)*force_obstacle;
+    force_y += p_curr(1)*force_obstacle;
 
     if(distance_obstacle_curr < distance_obstacle){
       distance_obstacle = distance_obstacle_curr;
@@ -88,58 +88,29 @@ void laser_cmd_vel_callback(const sensor_msgs::LaserScan::ConstPtr& scan){
   geometry_msgs::Twist msg_send;
 
   //coming near to the obstacle
-  if (distance_obstacle < 0.2){
-    ROS_INFO("DISTANCE IS: %f", distance_obstacle);
-   
-    msg_send.linear.x =  (force_x + vel_x)/2500;
-    msg_send.linear.y =  (force_y + vel_y)/2500;
+  if (distance_obstacle < 0.25){
+    ROS_INFO("TOO NEAR!! DISTANCE IS: %f", distance_obstacle);
+
+      force_x = force_x/8000;
+      force_y = force_y/8000;
+  
+    msg_send.linear.x =  vel_x + force_x;
+    msg_send.linear.y =  vel_y + force_y;
 
     if(p_start(1) > 0){
-      msg_send.angular.z = -1/distance_obstacle;
+      msg_send.angular.z = -1/distance_obstacle - abs(vel_angular);
     }
     else if (p_start(1) < 0){
-      msg_send.angular.z = 1/distance_obstacle;
+      msg_send.angular.z = 1/distance_obstacle + abs(vel_angular);   //counter clockwise
     }
+    ROS_INFO("Velocity: %f \nRotate of: %f", msg_send.linear.x, msg_send.angular.z);
     pub_vel.publish(msg_send);
-    ROS_INFO("Rotate of: %f", msg_send.angular.z);
+    
   }
-
- /*//very close to the obstacle
-  else if(distance_obstacle <= 0.1 && vel_x>0){
-    ROS_INFO("DISTANCE IS: %f", distance_obstacle);
-    //decrease by a bigger factor the velocities
-    msg_send.linear.x =  (force_x + vel_x)/2000;
-    msg_send.linear.y =  (force_y + vel_y)/2000;
-
-    if(p_start(1) > 0){
-      msg_send.angular.z = -1/distance_obstacle;
-    }
-    else if (p_start(1) < 0){
-      msg_send.angular.z = 1/distance_obstacle;
-    }
-    pub_vel.publish(msg_send);
-    ROS_INFO("Second, velocities are: %f", msg_send.linear.x);
-  }
- /* //too much close, the robot stops and turn around
-  else if(distance_obstacle <= 0.1){
-    ROS_INFO("DISTANCE IS: %f", distance_obstacle);
-    //null velocites otherwise crashes
-    msg_send.linear.x =  (force_x + vel_x)/2000;
-    msg_send.linear.y =  (force_y + vel_y)/2000;
-
-    if(p_start(1) > 0){
-      msg_send.angular.z = -1/distance_obstacle;
-    }
-    else if (p_start(1) < 0){
-      msg_send.angular.z = 1/distance_obstacle;
-    }
-    pub_vel.publish(msg_send);
-    ROS_INFO("Third, velocities are: %f", msg_send.linear.x);
-  }*/
 
   else{
-    pub_vel.publish(vel_rec);
     ROS_INFO("DISTANCE IS: %f", distance_obstacle);
+    pub_vel.publish(vel_rec);
   }
   
   
@@ -150,8 +121,8 @@ int main(int argc, char **argv){
   ros::init(argc, argv, "project");
 
   ros::NodeHandle nh;
-  ros::Subscriber cmd_vel_sub = nh.subscribe("cmd_vel", 1, cmd_vel_callback);
-  ros::Subscriber laser_scan_sub = nh.subscribe("base_scan", 1000, laser_cmd_vel_callback);
+  ros::Subscriber cmd_vel_sub = nh.subscribe("cmd_vel", 1000, cmd_vel_callback);
+  ros::Subscriber laser_scan_sub = nh.subscribe("base_scan", 1, laser_cmd_vel_callback);
   pub_vel = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
   
 

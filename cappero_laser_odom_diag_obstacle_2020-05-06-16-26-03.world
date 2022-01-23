@@ -92,7 +92,7 @@ floorplan
 )
 
 # throw in a robot
-erratic( pose [ -1 -13 0.000 180.000 ] name "era" color "blue")
+erratic( pose [ -1 -13 0.000 180.000 ] name "era" color "green")
 
 # throw in obstacles
 block(name "obstacle_red" color "red" pose [ -3 -12.85 0.000 180.000 ])
