@@ -82,28 +82,64 @@ void laser_cmd_vel_callback(const sensor_msgs::LaserScan::ConstPtr& scan){
       p_start = p_curr;
     }
   }
-  //need to consider the opposite because the vectors have same directions of robot->obstacle
-  //but opposite versor
 
-  if (distance_obstacle < 1.5 && vel_x>0){
-    force_x = - force_x;
-    force_y = - force_y;
+  force_x = - force_x;
+  force_y = - force_y;
+  geometry_msgs::Twist msg_send;
 
-    geometry_msgs::Twist msg_send;
+  //coming near to the obstacle
+  if (distance_obstacle < 0.2){
+    ROS_INFO("DISTANCE IS: %f", distance_obstacle);
+   
+    msg_send.linear.x =  (force_x + vel_x)/2500;
+    msg_send.linear.y =  (force_y + vel_y)/2500;
 
-    msg_send.linear.x =  force_x + vel_x;
-    msg_send.linear.y =  force_y + vel_y;
-
-    if(p_start(1) >0){
+    if(p_start(1) > 0){
       msg_send.angular.z = -1/distance_obstacle;
     }
     else if (p_start(1) < 0){
       msg_send.angular.z = 1/distance_obstacle;
     }
     pub_vel.publish(msg_send);
+    ROS_INFO("Rotate of: %f", msg_send.angular.z);
   }
+
+ /*//very close to the obstacle
+  else if(distance_obstacle <= 0.1 && vel_x>0){
+    ROS_INFO("DISTANCE IS: %f", distance_obstacle);
+    //decrease by a bigger factor the velocities
+    msg_send.linear.x =  (force_x + vel_x)/2000;
+    msg_send.linear.y =  (force_y + vel_y)/2000;
+
+    if(p_start(1) > 0){
+      msg_send.angular.z = -1/distance_obstacle;
+    }
+    else if (p_start(1) < 0){
+      msg_send.angular.z = 1/distance_obstacle;
+    }
+    pub_vel.publish(msg_send);
+    ROS_INFO("Second, velocities are: %f", msg_send.linear.x);
+  }
+ /* //too much close, the robot stops and turn around
+  else if(distance_obstacle <= 0.1){
+    ROS_INFO("DISTANCE IS: %f", distance_obstacle);
+    //null velocites otherwise crashes
+    msg_send.linear.x =  (force_x + vel_x)/2000;
+    msg_send.linear.y =  (force_y + vel_y)/2000;
+
+    if(p_start(1) > 0){
+      msg_send.angular.z = -1/distance_obstacle;
+    }
+    else if (p_start(1) < 0){
+      msg_send.angular.z = 1/distance_obstacle;
+    }
+    pub_vel.publish(msg_send);
+    ROS_INFO("Third, velocities are: %f", msg_send.linear.x);
+  }*/
+
   else{
     pub_vel.publish(vel_rec);
+    ROS_INFO("DISTANCE IS: %f", distance_obstacle);
   }
   
   
