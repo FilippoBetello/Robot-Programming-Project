@@ -26,6 +26,7 @@ inline Eigen::Isometry2f convertPose2D(const tf::StampedTransform& t) {
     T.translation() = Eigen::Vector2f(t.getOrigin().x(), t.getOrigin().y());
     return T;
 }
+geometry_msgs::Twist msg_send;
 
 void cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& msg){
   vel_rec = *msg;
@@ -88,20 +89,20 @@ void laser_cmd_vel_callback(const sensor_msgs::LaserScan::ConstPtr& scan){
   geometry_msgs::Twist msg_send;
 
   //coming near to the obstacle
-  if (distance_obstacle < 0.25){
-    ROS_INFO("TOO NEAR!! DISTANCE IS: %f", distance_obstacle);
+  if (distance_obstacle < 0.4){
+    ROS_INFO("DANGER ZONE! DISTANCE IS: %f", distance_obstacle);
 
       force_x = force_x/8000;
       force_y = force_y/8000;
-  
+    
     msg_send.linear.x =  vel_x + force_x;
     msg_send.linear.y =  vel_y + force_y;
 
     if(p_start(1) > 0){
-      msg_send.angular.z = -1/distance_obstacle - abs(vel_angular);
+      msg_send.angular.z = -1/pow(distance_obstacle, 1) - abs(vel_angular);
     }
     else if (p_start(1) < 0){
-      msg_send.angular.z = 1/distance_obstacle + abs(vel_angular);   //counter clockwise
+      msg_send.angular.z = 1/pow(distance_obstacle, 1)  + abs(vel_angular);   //counter clockwise
     }
     ROS_INFO("Velocity: %f \nRotate of: %f", msg_send.linear.x, msg_send.angular.z);
     pub_vel.publish(msg_send);
@@ -121,12 +122,10 @@ int main(int argc, char **argv){
   ros::init(argc, argv, "project");
 
   ros::NodeHandle nh;
-  ros::Subscriber cmd_vel_sub = nh.subscribe("cmd_vel", 1000, cmd_vel_callback);
-  ros::Subscriber laser_scan_sub = nh.subscribe("base_scan", 1, laser_cmd_vel_callback);
+  ros::Subscriber cmd_vel_sub = nh.subscribe("cmd_vel", 1, cmd_vel_callback);
+  ros::Subscriber laser_scan_sub = nh.subscribe("base_scan", 8, laser_cmd_vel_callback);
   pub_vel = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
   
-
-
  /* Exit only when ctrl+c is pressed*/
   ros::spin();
 
