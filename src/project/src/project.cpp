@@ -60,11 +60,8 @@ void laser_cmd_vel_callback(const sensor_msgs::LaserScan::ConstPtr& scan){
   Eigen::Isometry2f T = convertPose2D(obstacle);  //Matrix to transform the coordinates
   Eigen::Vector2f p_start, p_curr;
 
-  //at the beginning 
-  p_start(0) = cloud.points[540].x;
-  p_start(1) = cloud.points[540].y;
-  p_start = T*p_start;
-  float distance_obstacle = sqrt(pow(p_start(0),2) + pow(p_start(1),2));
+  //Initialize the distance
+  float distance_obstacle = 9999;
 
 
 //scan all elements of the cloud
@@ -90,8 +87,7 @@ void laser_cmd_vel_callback(const sensor_msgs::LaserScan::ConstPtr& scan){
 
   //coming near to the obstacle
   if (distance_obstacle < 0.4){
-    ROS_INFO("DANGER ZONE! DISTANCE IS: %f", distance_obstacle);
-
+      std::cout << "DANGER ZONE!! DISTANCE IS: " << distance_obstacle << std::endl;
       force_x = force_x/8000;
       force_y = force_y/8000;
     
@@ -104,13 +100,14 @@ void laser_cmd_vel_callback(const sensor_msgs::LaserScan::ConstPtr& scan){
     else if (p_start(1) < 0){
       msg_send.angular.z = 1/pow(distance_obstacle, 1)  + abs(vel_angular);   //counter clockwise
     }
-    ROS_INFO("Velocity: %f \nRotate of: %f", msg_send.linear.x, msg_send.angular.z);
+    std::cout << "Velocity: " << msg_send.linear.x << "\tRotation: " << msg_send.angular.z << std::endl;
     pub_vel.publish(msg_send);
     
   }
 
   else{
-    ROS_INFO("DISTANCE IS: %f", distance_obstacle);
+    //ROS_INFO("DISTANCE IS: %f", distance_obstacle);
+    std::cout << "DISTANCE IS: " << distance_obstacle << std::endl;
     pub_vel.publish(vel_rec);
   }
   
@@ -123,7 +120,7 @@ int main(int argc, char **argv){
 
   ros::NodeHandle nh;
   ros::Subscriber cmd_vel_sub = nh.subscribe("cmd_vel", 1, cmd_vel_callback);
-  ros::Subscriber laser_scan_sub = nh.subscribe("base_scan", 8, laser_cmd_vel_callback);
+  ros::Subscriber laser_scan_sub = nh.subscribe("base_scan", 4, laser_cmd_vel_callback);
   pub_vel = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
   
  /* Exit only when ctrl+c is pressed*/
