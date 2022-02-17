@@ -15,6 +15,7 @@ const int DAMPING_FACTOR = 9000;
 // global useful variables
 float vel_x = 0, vel_y = 0, vel_angular = 0, force_x = 0, force_y = 0;
 bool cmd_vel_arrived = false;
+
 geometry_msgs::Twist vel_rec;
 ros::Publisher pub_vel;
 geometry_msgs::Twist msg_send;
@@ -54,7 +55,7 @@ void laser_cmd_vel_callback(const sensor_msgs::LaserScan::ConstPtr& scan){
 
   try{
     // Transform laser scan in odom frame using the tf listener
-    projector.transformLaserScanToPointCloud("base_laser_link",*scan, cloud,listener);
+    projector.transformLaserScanToPointCloud("base_laser_link", *scan, cloud,listener);
     listener.waitForTransform("base_footprint", "base_laser_link", ros::Time(0), ros::Duration(10,0));
     listener.lookupTransform("base_footprint", "base_laser_link", ros::Time(0), obstacle);
   }
@@ -128,6 +129,7 @@ int main(int argc, char **argv){
   ros::NodeHandle nh;
   ros::Subscriber cmd_vel_sub = nh.subscribe("cmd_vel", 1, cmd_vel_callback);
   ros::Subscriber laser_scan_sub = nh.subscribe("base_scan", 8, laser_cmd_vel_callback);
+
   pub_vel = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
   
  /* Exit only when ctrl+c is pressed*/
